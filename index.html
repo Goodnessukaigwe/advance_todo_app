@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Student Management Todo App</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Student Management System</h1>
+        <p>Keep track of your students with this advanced todo app</p>
+      </header>
+
+      <main>
+        <!-- Add Student Form -->
+        <section class="add-student-section">
+          <h2>Add New Student</h2>
+          <form id="studentForm" class="student-form">
+            <div class="form-group">
+              <label for="studentName">Student Name:</label>
+              <input type="text" id="studentName" name="name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="studentAge">Student Age:</label>
+              <input
+                type="number"
+                id="studentAge"
+                name="age"
+                min="5"
+                max="100"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="studentClass">Student Class:</label>
+              <input
+                type="text"
+                id="studentClass"
+                name="class"
+                placeholder="e.g., Grade 10A, Computer Science"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="studentInterests">Student Interests:</label>
+              <textarea
+                id="studentInterests"
+                name="interests"
+                placeholder="e.g., Mathematics, Sports, Music"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add Student</button>
+            <button
+              type="button"
+              id="cancelEdit"
+              class="btn btn-secondary"
+              style="display: none"
+            >
+              Cancel Edit
+            </button>
+          </form>
+        </section>
+
+        <!-- Search and Filter -->
+        <section class="search-section">
+          <h2>Search Students</h2>
+          <div class="search-controls">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search by name, class, or interests..."
+            />
+            <select id="sortBy">
+              <option value="name">Sort by Name</option>
+              <option value="age">Sort by Age</option>
+              <option value="class">Sort by Class</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Students List -->
+        <section class="students-section">
+          <h2>Students List</h2>
+          <div id="studentsCount" class="students-count">Total Students: 0</div>
+          <div id="studentsList" class="students-list">
+            <!-- Students will be dynamically added here -->
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
