@@ -68,13 +68,13 @@ function updateStudent() {
 
 // Delete a student
 function deleteStudent(id) {
-    let studentName = '';
-    for (let i = 0; i < students.length; i++) {
-        if (students[i].id === id) {
-            studentName = students[i].name;
-            break;
-        }
-    }
+    let studentName = students.find(student => student.id === id)?.name || 'Unknown Student';
+    // for (let i = 0; i < students.length; i++) {
+    //     if (students[i].id === id) {
+    //         studentName = students[i].name;
+    //         break;
+    //     }
+    // }
     
     if (confirm(`Are you sure you want to delete "${studentName}"?`)) {
         students = students.filter(student => student.id !== id);
