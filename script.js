@@ -1,10 +1,9 @@
 let students = [];
 let currentEditId = null; 
-let nextId = 1; 
-const NAME = document.getElementById('studentName');
-const AGE = document.getElementById('studentAge');
-const STUDENT_CLASS = document.getElementById('studentClass');
-const INTERESTS = document.getElementById('studentInterests');
+const nameInput = document.getElementById('studentName');
+const ageInput = document.getElementById('studentAge');
+const studentClassInput = document.getElementById('studentClass');
+const interestsInput = document.getElementById('studentInterests');
 
 // Start the app when page loads
 window.addEventListener('load', function() {
@@ -17,7 +16,7 @@ window.addEventListener('load', function() {
 // Create a new student object
 function createStudent(name, age, studentClass, interests) {
     return {
-        id: nextId++,
+        id: students.length + 1,
         name: name,
         age: age,
         class: studentClass,
@@ -29,29 +28,28 @@ function createStudent(name, age, studentClass, interests) {
 
 // Add a new student
 function addStudent() {
-    if (isValidStudent(NAME.value, AGE.value, STUDENT_CLASS.value, INTERESTS.value)) {
-        const newStudent = createStudent(NAME.value, AGE.value, STUDENT_CLASS.value, INTERESTS.value);
+    if (isValidStudent(nameInput.value, ageInput.value, studentClassInput.value, interestsInput.value)) {
+        const newStudent = createStudent(nameInput.value, ageInput.value, studentClassInput.value, interestsInput.value);
         students.push(newStudent);
         saveStudentsToStorage();
         showAllStudents();
         updateStudentCount();
         clearForm();
-        showMessage(`Student "${NAME.value}" added successfully!`, 'success');
+        showMessage(`Student "${nameInput.value}" added successfully!`, 'success');
     }
 }
 
 // Update an existing student
 function updateStudent() {
-    if (isValidStudent(NAME.value, AGE.value, STUDENT_CLASS.value, INTERESTS.value)) {
-        for (let i = 0; i < students.length; i++) {
-            if (students[i].id === currentEditId) {
-                students[i].name = NAME.value;
-                students[i].age = parseInt(AGE.value);
-                students[i].class = STUDENT_CLASS.value;
-                students[i].interests = INTERESTS.value;
-                students[i].lastUpdated = new Date().toLocaleDateString();
-                break;
-            }
+    const studentIndex = students.findIndex(student => student.id === currentEditId);
+    
+    if (isValidStudent(nameInput.value, ageInput.value, studentClassInput.value, interestsInput.value)) {
+        if (studentIndex !== -1) {
+            students[studentIndex].name = nameInput.value;
+            students[studentIndex].age = parseInt(ageInput.value);
+            students[studentIndex].class = studentClassInput.value;
+            students[studentIndex].interests = interestsInput.value;
+            students[studentIndex].lastUpdated = new Date().toLocaleDateString();
         }
         
         saveStudentsToStorage();
@@ -62,26 +60,20 @@ function updateStudent() {
         document.querySelector('.btn-primary').textContent = 'Add Student';
         document.getElementById('cancelEdit').style.display = 'none';
         
-        showMessage(`Student "${NAME.value}" updated successfully!`, 'success');
+        showMessage(`Student "${nameInput.value}" updated successfully!`, 'success');
     }
 }
 
 // Delete a student
 function deleteStudent(id) {
-    let studentName = students.find(student => student.id === id)?.name || 'Unknown Student';
-    // for (let i = 0; i < students.length; i++) {
-    //     if (students[i].id === id) {
-    //         studentName = students[i].name;
-    //         break;
-    //     }
-    // }
-    
-    if (confirm(`Are you sure you want to delete "${studentName}"?`)) {
+   const STUDENT_NAME = students.find(student => student.id === id)?.name || 'Unknown Student';
+
+    if (confirm(`Are you sure you want to delete "${STUDENT_NAME}"?`)) {
         students = students.filter(student => student.id !== id);
         saveStudentsToStorage();
         showAllStudents();
         updateStudentCount();
-        showMessage(`Student "${studentName}" deleted successfully!`, 'success');
+        showMessage(`Student "${STUDENT_NAME}" deleted successfully!`, 'success');
     }
 }
 
@@ -105,14 +97,6 @@ function isValidStudent(name, age, studentClass, interests) {
     if (!interests || interests.trim().length < 3) {
         showMessage('Student interests must be at least 3 characters long!', 'error');
         return false;
-    }
-    
-    for (let i = 0; i < students.length; i++) {
-        if (students[i].name.toLowerCase() === name.trim().toLowerCase() && 
-            students[i].id !== currentEditId) {
-            showMessage('A student with this name already exists!', 'error');
-            return false;
-        }
     }
     
     return true;
@@ -211,21 +195,15 @@ function showAllStudents() {
 
 // Edit a student
 function editStudent(id) {
-    let student = null;
-    for (let i = 0; i < students.length; i++) {
-        if (students[i].id === id) {
-            student = students[i];
-            break;
-        }
-    }
+    const student = students.find(student => student.id === id);
     
     if (student) {
         currentEditId = id;
         
-        NAME.value = student.name;
-        AGE.value = student.age;
-        STUDENT_CLASS.value = student.class;
-        INTERESTS.value = student.interests;
+        nameInput.value = student.name;
+        ageInput.value = student.age;
+        studentClassInput.value = student.class;
+        interestsInput.value = student.interests;
         
         document.querySelector('.btn-primary').textContent = 'Update Student';
         document.getElementById('cancelEdit').style.display = 'inline-block';
@@ -299,28 +277,22 @@ function showMessage(message, type) {
 
 // Save students to browser storage
 function saveStudentsToStorage() {
-    const dataToSave = {
-        students: students,
-        nextId: nextId
-    };
-    localStorage.setItem('studentsData', JSON.stringify(dataToSave));
+    localStorage.setItem('studentsData', JSON.stringify(students));
 }
 
 // Load students from browser storage
 function loadStudentsFromStorage() {
-    const savedData = localStorage.getItem('studentsData');
+    const savedData = JSON.parse(localStorage.getItem("studentsData"));
     
     if (savedData) {
-        const data = JSON.parse(savedData);
-        students = data.students || [];
-        nextId = data.nextId || 1;
+        students = savedData;
     }
 }
 
 // Set up button clicks and form submission
 function setupButtonClicks() {
-    document.getElementById('studentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    document.getElementById('studentForm').addEventListener('submit', function(event) {
+        event.preventDefault();
         
         if (currentEditId) {
             updateStudent();
@@ -341,9 +313,9 @@ function setupButtonClicks() {
         searchStudents();
     });
 
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-        if (e.key === 'Escape') {
-            e.target.value = '';
+    document.getElementById('searchInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Escape') {
+            event.target.value = '';
             searchStudents();
         }
     });
@@ -366,7 +338,6 @@ function exportData() {
 function clearAllData() {
     if (confirm('Are you sure you want to delete ALL student data? This cannot be undone!')) {
         students = [];
-        nextId = 1;
         currentEditId = null;
         saveStudentsToStorage();
         showAllStudents();
