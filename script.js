@@ -5,10 +5,18 @@ const ageInput = document.getElementById('studentAge');
 const studentClassInput = document.getElementById('studentClass');
 const interestsInput = document.getElementById('studentInterests');
 
+// Modal elements
+const modal = document.getElementById('studentModal');
+const modalTitle = document.getElementById('modalTitle');
+const closeBtn = document.querySelector('.close');
+const addStudentBtn = document.getElementById('addStudentBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+
 // Start the app when page loads
 window.addEventListener('load', function() {
     loadStudentsFromStorage();
     setupButtonClicks();
+    setupModalEvents();
     showAllStudents();
     updateStudentCount();
 });
@@ -35,30 +43,31 @@ function addStudent() {
         showAllStudents();
         updateStudentCount();
         clearForm();
+        closeModal();
         showMessage(`Student "${nameInput.value}" added successfully!`, 'success');
     }
 }
 
 // Update an existing student
 function updateStudent() {
-    const studentIndex = students.findIndex(student => student.id === currentEditId);
+    const STUDENT = students.find(student => student.id === currentEditId);
     
     if (isValidStudent(nameInput.value, ageInput.value, studentClassInput.value, interestsInput.value)) {
-        if (studentIndex !== -1) {
-            students[studentIndex].name = nameInput.value;
-            students[studentIndex].age = parseInt(ageInput.value);
-            students[studentIndex].class = studentClassInput.value;
-            students[studentIndex].interests = interestsInput.value;
-            students[studentIndex].lastUpdated = new Date().toLocaleDateString();
+        if (STUDENT) {
+            STUDENT.name = nameInput.value;
+            STUDENT.age = parseInt(ageInput.value);
+            STUDENT.class = studentClassInput.value;
+            STUDENT.interests = interestsInput.value;
+            STUDENT.lastUpdated = new Date().toLocaleDateString();
         }
         
         saveStudentsToStorage();
         showAllStudents();
         clearForm();
+        closeModal();
         
         currentEditId = null;
         document.querySelector('.btn-primary').textContent = 'Add Student';
-        document.getElementById('cancelEdit').style.display = 'none';
         
         showMessage(`Student "${nameInput.value}" updated successfully!`, 'success');
     }
@@ -104,29 +113,32 @@ function isValidStudent(name, age, studentClass, interests) {
 
 // Search for students
 function searchStudents() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const sortBy = document.getElementById('sortBy').value;
-    
+    const SEARCHITEM = document.getElementById('searchInput').value.toLowerCase();
+    const SORTBY = document.getElementById('sortBy').value;
     let filteredStudents = [];
-    
-    if (!searchTerm) {
-        filteredStudents = students;
+    let FILTERED_STUDENTS = [];
+
+    if (!SEARCHITEM) {
+        FILTERED_STUDENTS = students;
     } else {
-        for (let i = 0; i < students.length; i++) {
-            const student = students[i];
-            if (student.name.toLowerCase().includes(searchTerm) ||
-                student.class.toLowerCase().includes(searchTerm) ||
-                student.interests.toLowerCase().includes(searchTerm)) {
-                filteredStudents.push(student);
-            }
-        }
+        FILTERED_STUDENTS = students.filter(student => 
+            student.name.toLowerCase().includes(SEARCHITEM) ||
+            student.class.toLowerCase().includes(SEARCHITEM) ||
+            student.interests.toLowerCase().includes(SEARCHITEM)
+        );
     }
     
-    if (sortBy === 'name') {
+  
+    filteredStudents.length = 0;
+    
+
+    filteredStudents.push(...FILTERED_STUDENTS);
+
+    if (SORTBY === 'name') {
         filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === 'age') {
+    } else if (SORTBY === 'age') {
         filteredStudents.sort((a, b) => a.age - b.age);
-    } else if (sortBy === 'class') {
+    } else if (SORTBY === 'class') {
         filteredStudents.sort((a, b) => a.class.localeCompare(b.class));
     }
     
@@ -136,55 +148,48 @@ function searchStudents() {
 // Display students on the page
 function displayStudents(studentsToShow) {
     const studentsList = document.getElementById('studentsList');
+    const emptyState = document.getElementById('emptyState');
+    const studentsTable = document.getElementById('studentsTable');
     
     if (studentsToShow.length === 0) {
-        studentsList.innerHTML = `
-            <div class="empty-state">
-                <h3>No students found</h3>
-                <p>Add your first student to get started!</p>
-            </div>
-        `;
+        studentsTable.style.display = 'none';
+        emptyState.style.display = 'block';
         return;
     }
+    
+    studentsTable.style.display = 'table';
+    emptyState.style.display = 'none';
     
     let html = '';
     for (let i = 0; i < studentsToShow.length; i++) {
         const student = studentsToShow[i];
-        html += createStudentHTML(student);
+        html += createStudentTableRow(student);
     }
     
     studentsList.innerHTML = html;
 }
 
-// Create HTML for one student card
-function createStudentHTML(student) {
+// Create HTML for one student table row
+function createStudentTableRow(student) {
     return `
-        <div class="student-card fade-in" data-id="${student.id}">
-            <div class="student-header">
-                <h3 class="student-name">${escapeHTML(student.name)}</h3>
-                <span class="student-id">ID: ${student.id}</span>
-            </div>
-            
-            <div class="student-info">
-                <p><strong>Age:</strong> ${student.age} years old</p>
-                <p><strong>Class:</strong> ${escapeHTML(student.class)}</p>
-                <div class="student-interests">
-                    <p><strong>Interests:</strong> ${escapeHTML(student.interests)}</p>
+        <tr class="fade-in">
+            <td>${student.id}</td>
+            <td>${escapeHTML(student.name)}</td>
+            <td>${student.age}</td>
+            <td>${escapeHTML(student.class)}</td>
+            <td>${escapeHTML(student.interests)}</td>
+            <td>${student.dateAdded}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-edit" onclick="editStudent(${student.id})">
+                        Edit
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteStudent(${student.id})">
+                        Delete
+                    </button>
                 </div>
-                <p><strong>Added:</strong> ${student.dateAdded}</p>
-                ${student.lastUpdated !== student.dateAdded ? 
-                    `<p><strong>Updated:</strong> ${student.lastUpdated}</p>` : ''}
-            </div>
-            
-            <div class="student-actions">
-                <button class="btn btn-edit" onclick="editStudent(${student.id})">
-                    Edit
-                </button>
-                <button class="btn btn-delete" onclick="deleteStudent(${student.id})">
-                    Delete
-                </button>
-            </div>
-        </div>
+            </td>
+        </tr>
     `;
 }
 
@@ -195,31 +200,57 @@ function showAllStudents() {
 
 // Edit a student
 function editStudent(id) {
-    const student = students.find(student => student.id === id);
+    const STUDENT_NAME = students.find(student => student.id === id);
     
-    if (student) {
+    if (STUDENT_NAME) {
         currentEditId = id;
         
-        nameInput.value = student.name;
-        ageInput.value = student.age;
-        studentClassInput.value = student.class;
-        interestsInput.value = student.interests;
-        
+        nameInput.value = STUDENT_NAME.name;
+        ageInput.value = STUDENT_NAME.age;
+        studentClassInput.value = STUDENT_NAME.class;
+        interestsInput.value = STUDENT_NAME.interests;
+
+        modalTitle.textContent = 'Edit Student';
         document.querySelector('.btn-primary').textContent = 'Update Student';
-        document.getElementById('cancelEdit').style.display = 'inline-block';
-        
-        document.querySelector('.add-student-section').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
+        openModal();
     }
 }
 
-// Cancel editing
-function cancelEdit() {
-    currentEditId = null;
+// Modal functions
+function openModal() {
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    modal.style.display = 'none';
     clearForm();
+    currentEditId = null;
+    modalTitle.textContent = 'Add New Student';
     document.querySelector('.btn-primary').textContent = 'Add Student';
-    document.getElementById('cancelEdit').style.display = 'none';
+}
+
+function setupModalEvents() {
+    // Open modal when Add Student button is clicked
+    addStudentBtn.addEventListener('click', function() {
+        openModal();
+    });
+
+    // Close modal when X button is clicked
+    closeBtn.addEventListener('click', function() {
+        closeModal();
+    });
+
+    // Close modal when Cancel button is clicked
+    cancelBtn.addEventListener('click', function() {
+        closeModal();
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
 }
 
 // Clear the form
@@ -229,8 +260,8 @@ function clearForm() {
 
 // Update the student count display
 function updateStudentCount() {
-    const count = students.length;
-    document.getElementById('studentsCount').textContent = `Total Students: ${count}`;
+    const COUNT = students.length;
+    document.getElementById('studentsCount').textContent = `Total Students: ${COUNT}`;
 }
 
 // Make text safe for HTML
@@ -242,9 +273,9 @@ function escapeHTML(text) {
 
 // Show messages to the user
 function showMessage(message, type) {
-    const messageBox = document.createElement('div');
-    messageBox.className = `notification ${type}`;
-    messageBox.style.cssText = `
+    const MESSAGEBOX = document.createElement('div');
+    MESSAGEBOX.className = `notification ${type}`;
+    MESSAGEBOX.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
@@ -257,19 +288,19 @@ function showMessage(message, type) {
         transition: transform 0.3s ease;
         ${type === 'success' ? 'background: #38a169;' : 'background: #e53e3e;'}
     `;
-    messageBox.textContent = message;
+    MESSAGEBOX.textContent = message;
 
-    document.body.appendChild(messageBox);
+    document.body.appendChild(MESSAGEBOX);
 
     setTimeout(() => {
-        messageBox.style.transform = 'translateX(0)';
+        MESSAGEBOX.style.transform = 'translateX(0)';
     }, 100);
 
     setTimeout(() => {
-        messageBox.style.transform = 'translateX(400px)';
+        MESSAGEBOX.style.transform = 'translateX(400px)';
         setTimeout(() => {
-            if (messageBox.parentNode) {
-                messageBox.parentNode.removeChild(messageBox);
+            if (MESSAGEBOX.parentNode) {
+                MESSAGEBOX.parentNode.removeChild(MESSAGEBOX);
             }
         }, 300);
     }, 3000);
@@ -282,10 +313,10 @@ function saveStudentsToStorage() {
 
 // Load students from browser storage
 function loadStudentsFromStorage() {
-    const savedData = JSON.parse(localStorage.getItem("studentsData"));
+    const SAVEDDATA = JSON.parse(localStorage.getItem("studentsData"));
     
-    if (savedData) {
-        students = savedData;
+    if (SAVEDDATA) {
+        students = SAVEDDATA;
     }
 }
 
@@ -299,10 +330,6 @@ function setupButtonClicks() {
         } else {
             addStudent();
         }
-    });
-
-    document.getElementById('cancelEdit').addEventListener('click', function() {
-        cancelEdit();
     });
 
     document.getElementById('searchInput').addEventListener('input', function() {
@@ -323,11 +350,11 @@ function setupButtonClicks() {
 
 // Export student data
 function exportData() {
-    const dataString = JSON.stringify(students, null, 2);
-    const dataBlob = new Blob([dataString], { type: 'application/json' });
-    
+    const DATASTRING = JSON.stringify(students, null, 2);
+    const DATABLOB = new Blob([DATASTRING], { type: 'application/json' });
+
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
+    link.href = URL.createObjectURL(DATABLOB);
     link.download = `students_backup_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     

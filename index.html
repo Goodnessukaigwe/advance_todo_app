@@ -14,9 +14,62 @@
       </header>
 
       <main>
-        <!-- Add Student Form -->
-        <section class="add-student-section">
-          <h2>Add New Student</h2>
+        <!-- Search and Filter Section -->
+        <section class="search-section">
+          <h2>Search Students</h2>
+          <div class="search-controls">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search by name, class, or interests..."
+            />
+            <select id="sortBy">
+              <option value="name">Sort by Name</option>
+              <option value="age">Sort by Age</option>
+              <option value="class">Sort by Class</option>
+            </select>
+            <button id="addStudentBtn" class="btn btn-primary">Add Student</button>
+          </div>
+        </section>
+
+        <!-- Students List Table -->
+        <section class="students-section">
+          <h2>Students List</h2>
+          <div id="studentsCount" class="students-count">Total Students: 0</div>
+          <div class="table-container">
+            <table id="studentsTable" class="students-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Age</th>
+                  <th>Class</th>
+                  <th>Interests</th>
+                  <th>Date Added</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsList">
+                <!-- Students will be dynamically added here -->
+              </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+              <h3>No students found</h3>
+              <p>Add your first student to get started!</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New Student</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
           <form id="studentForm" class="student-form">
             <div class="form-group">
               <label for="studentName">Student Name:</label>
@@ -57,44 +110,13 @@
               ></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary">Add Student</button>
-            <button
-              type="button"
-              id="cancelEdit"
-              class="btn btn-secondary"
-              style="display: none"
-            >
-              Cancel Edit
-            </button>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Add Student</button>
+              <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
           </form>
-        </section>
-
-        <!-- Search and Filter -->
-        <section class="search-section">
-          <h2>Search Students</h2>
-          <div class="search-controls">
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search by name, class, or interests..."
-            />
-            <select id="sortBy">
-              <option value="name">Sort by Name</option>
-              <option value="age">Sort by Age</option>
-              <option value="class">Sort by Class</option>
-            </select>
-          </div>
-        </section>
-
-        <!-- Students List -->
-        <section class="students-section">
-          <h2>Students List</h2>
-          <div id="studentsCount" class="students-count">Total Students: 0</div>
-          <div id="studentsList" class="students-list">
-            <!-- Students will be dynamically added here -->
-          </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
